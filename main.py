@@ -21,12 +21,33 @@ plt.show()
 xc = x - x.mean(axis=0)
 xcs = xc / xc.std(axis=0)
 
-covmatrix = np.dot(xcs.transpose(), xcs) / (len(xcs)-1)
-lambdacov, pcov = [list(e) for e in np.linalg.eig(covmatrix)]
+covMatrix = np.dot(xcs.transpose(), xcs) / (len(xcs)-1)
+lambdaCov, pCov = [list(e) for e in np.linalg.eig(covMatrix)]
 
-lambdacovsorted = sorted(lambdacov)
-indices = (lambdacov.index(i) for i in lambdacovsorted[:2])
-df["PC1"], df["PC2"] = (np.dot(xcs, pcov[i]) for i in indices)
+lambdaCovSorted = sorted(lambdaCov)
+indices = (lambdaCov.index(i) for i in lambdaCovSorted[:2])
+df["PC1"], df["PC2"] = (np.dot(xcs, pCov[i]) for i in indices)
 
-sns.lmplot("PC1", "PC2", data=df, hue="Blend", fit_reg=False)
+
+plt.figure(figsize=(5, 5))
+customPalette = ['#630C3A', '#39C8C6', '#D3500C', '#FFB139']
+
+# loop through labels and plot each cluster
+for i, label in enumerate(df["Blend"].unique()):
+    # add data points 
+    plt.scatter(x=df.loc[df["Blend"] == label, "PC1"],
+                y=df.loc[df["Blend"] == label, "PC2"],
+                color=customPalette[i],
+                alpha=0.50)
+
+    # add label
+    plt.annotate(label,
+                 df.loc[df["Blend"] == label, ["PC1", "PC2"]].mean(),
+                 horizontalalignment='center',
+                 verticalalignment='center',
+                 size=15, weight='bold',
+                 color=customPalette[i])
+
+plt.axvline(0, linewidth=1, color="black", alpha=0.50)
+plt.axhline(0, linewidth=1, color="black", alpha=0.50)
 plt.show()
