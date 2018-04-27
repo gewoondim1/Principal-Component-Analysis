@@ -2,8 +2,6 @@ from pandas import read_csv
 import numpy as np
 import matplotlib.pyplot as plt
 
-# import seaborn as sns
-
 
 class PCA:
     def __init__(self, dataframe, columns=None, startvar=0, endvar=0):
