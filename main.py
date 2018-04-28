@@ -45,7 +45,7 @@ class PCA:
             self.eigenv.append(pcov[eig])
 
     def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
-                lcolor="black", lwidth=1, lalpha=0.50, palpha=0.50):
+                     lcolor="black", lwidth=1, lalpha=0.50, palpha=0.50):
         if "PC1" not in self.df or "PC2" not in self.df:
             self.addpca(2)
 
@@ -115,5 +115,5 @@ df = read_csv(filelocation, delimiter=";")
 pca = PCA(df, startvar=4)
 pca.normalize()
 pca.addpca(2)
-# pca.plotpcascore("Blend")
+pca.plotpcascore("Blend")
 pca.plotpcaloadings()
