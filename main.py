@@ -2,6 +2,8 @@ from pandas import read_csv
 import numpy as np
 import matplotlib.pyplot as plt
 
+# import seaborn as sns
+
 
 class PCA:
     def __init__(self, dataframe, columns=None, startvar=0, endvar=0):
@@ -13,12 +15,17 @@ class PCA:
         try:
             if columns:
                 self.x = np.array(dataframe)[:, columns].astype(np.float32)
+                self.colnames = [list(dataframe)[i] for i in columns]
             elif not endvar:
                 self.x = np.array(dataframe)[:, startvar:].astype(np.float32)
+                self.colnames = list(dataframe)[startvar:]
             else:
                 self.x = np.array(dataframe)[:, startvar:endvar].astype(np.float32)
+                self.colnames = list(dataframe)[startvar:endvar]
         except ValueError:
             raise ValueError("All data has to be numerical or strings containing only numbers.")
+
+        self.eigenv = []
 
     def normalize(self, normalize=True):
         self.x -= self.x.mean(axis=0)
@@ -35,13 +42,15 @@ class PCA:
 
         for i, eig in enumerate(indices, 1):
             self.df["PC" + str(i)] = np.dot(self.x, pcov[eig])
+            self.eigenv.append(pcov[eig])
 
-    def plotpca(self, groupcol, colormap="gnuplot", bgcolor="lightgrey", lcolor="black", lwidth=1, lalpha=0.50, palpha=0.50):
+    def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
+                lcolor="black", lwidth=1, lalpha=0.50, palpha=0.50):
         if "PC1" not in self.df or "PC2" not in self.df:
             self.addpca(2)
 
         groups = self.df[groupcol].unique()
-        _, ax = plt.subplots(1, 1)
+        _, ax1 = plt.subplots(1, 1)
 
         cmap = plt.get_cmap(colormap)
         colorpalette = [cmap(c) for c in np.linspace(0, 1, len(groups))]
@@ -49,22 +58,51 @@ class PCA:
         # Loop through labels and plot each cluster
         for i, label in enumerate(groups):
             # Add data points
-            ax.scatter(x=self.df.loc[self.df[groupcol] == label, "PC1"],
-                       y=self.df.loc[self.df[groupcol] == label, "PC2"],
-                       color=colorpalette[i],
-                       alpha=palpha)
+            ax1.scatter(x=self.df.loc[self.df[groupcol] == label, "PC1"],
+                        y=self.df.loc[self.df[groupcol] == label, "PC2"],
+                        color=colorpalette[i],
+                        alpha=palpha)
 
             # Add labels
-            ax.annotate(label,
-                        self.df.loc[self.df[groupcol] == label, ["PC1", "PC2"]].mean(),
-                        horizontalalignment="center",
-                        verticalalignment="center",
-                        size=15, weight='bold',
-                        color=colorpalette[i])
+            ax1.annotate(label,
+                         self.df.loc[self.df[groupcol] == label, ["PC1", "PC2"]].mean(),
+                         horizontalalignment="center",
+                         verticalalignment="center",
+                         size=15, weight="bold",
+                         color=colorpalette[i])
 
-        ax.axvline(0, linewidth=lwidth, color=lcolor, alpha=lalpha)
-        ax.axhline(0, linewidth=lwidth, color=lcolor, alpha=lalpha)
-        ax.set_facecolor(bgcolor)
+        ax1.axvline(0, linewidth=lwidth, color=lcolor, alpha=lalpha)
+        ax1.axhline(0, linewidth=lwidth, color=lcolor, alpha=lalpha)
+        ax1.set_facecolor(bgcolor)
+
+        plt.show()
+
+    def plotpcaloadings(self):
+        _, ax2 = plt.subplots(1, 1)
+        ax2.scatter(self.eigenv[0], self.eigenv[1], color="black", s=2)
+
+        for i, txt in enumerate(self.colnames):
+            horalign = "right"
+            veralign = "top"
+
+            if self.eigenv[0][i] >= 0:
+                horalign = "left"
+
+            if self.eigenv[1][i] >= 0:
+                veralign = "bottom"
+
+            ax2.annotate(i+1,
+                         xy=(self.eigenv[0][i], self.eigenv[1][i]),
+                         horizontalalignment=horalign,
+                         verticalalignment=veralign)
+            ax2.annotate("",
+                         xy=(self.eigenv[0][i], self.eigenv[1][i]),
+                         xytext=(0, 0),
+                         arrowprops=dict(arrowstyle="-|>", connectionstyle="arc3", facecolor="black"),
+                         color="blue")
+
+        ax2.axvline(0, linewidth=1, color="black", alpha=0.50)
+        ax2.axhline(0, linewidth=1, color="black", alpha=0.50)
 
         plt.show()
 
@@ -77,4 +115,5 @@ df = read_csv(filelocation, delimiter=";")
 pca = PCA(df, startvar=4)
 pca.normalize()
 pca.addpca(2)
-pca.plotpca("Blend")
+# pca.plotpcascore("Blend")
+pca.plotpcaloadings()
