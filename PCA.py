@@ -1,4 +1,3 @@
-from pandas import read_csv
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -12,9 +11,9 @@ class PCA:
         startvar: first column containing actual data
         endvar: last column containing actual data
         """
-        
+
         self.df = dataframe
-        
+
         if columns is []:
             raise KeyError("Columns can not be an empty list")
 
@@ -38,7 +37,7 @@ class PCA:
         """
         normalize: wether or not the data will be normalized
         """
-        
+
         self.x -= self.x.mean(axis=0)
 
         if normalize:
@@ -48,12 +47,12 @@ class PCA:
         """
         n: the amount of PC's
         """
-        
+
         # Calculate a covariance matrix, eigenvalues and eigenvectors
         covmatrix = np.dot(self.x.transpose(), self.x) / (len(self.x) - 1)
         lambdacov, pcov = [list(e) for e in np.linalg.eig(covmatrix)]
 
-        lambdacovsorted = sorted(lambdacov)
+        lambdacovsorted = sorted(lambdacov, reverse=True)
         # Create a generator containing n indices for the max eigenvalues
         indices = (lambdacov.index(i) for i in lambdacovsorted[:n])
 
@@ -71,12 +70,12 @@ class PCA:
         lalpha: alpha of the centerlines
         palpha: alpha of the data points
         """
-        
+
         if "PC1" not in self.df or "PC2" not in self.df:
             self.addpca(2)
 
         groups = self.df[groupcol].unique()
-        
+
         # Create a new supplot
         _, ax1 = plt.subplots(1, 1)
 
@@ -125,7 +124,7 @@ class PCA:
                 veralign = "bottom"
 
             # Draw labels
-            ax2.annotate(i+1,
+            ax2.annotate(i + 1,
                          xy=(self.eigenv[0][i], self.eigenv[1][i]),
                          horizontalalignment=horalign,
                          verticalalignment=veralign)
@@ -141,15 +140,3 @@ class PCA:
         ax2.axhline(0, linewidth=1, color="black", alpha=0.50)
 
         plt.show()
-
-
-filelocation = "https://www.dropbox.com/s/4xomtdd3tee0efg/Senseo%20koffie.csv?raw=1"
-
-df = read_csv(filelocation, delimiter=";")
-# print(list(df))  # Print the columns to get an insight in the data
-
-pca = PCA(df, startvar=4)
-pca.normalize()
-pca.addpca(2)
-pca.plotpcascore("Blend")
-pca.plotpcaloadings()
