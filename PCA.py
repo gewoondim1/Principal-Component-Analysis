@@ -1,9 +1,10 @@
+from pandas import read_csv
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 class PCA:
-    def __init__(self, dataframe, columns=None, startvar=0, endvar=0):
+    def __init__(self, dataframe, columns=None, startvar=0, endvar=0, plotsize=(10, 10)):
         """
         If columns is not None it will be used to classify the data, otherwise the startvar will be used
         dataframe: the data as a pandas dataframe
@@ -13,6 +14,7 @@ class PCA:
         """
 
         self.df = dataframe
+        self.plotsize=plotsize
 
         if columns is []:
             raise KeyError("Columns can not be an empty list")
@@ -77,7 +79,7 @@ class PCA:
         groups = self.df[groupcol].unique()
 
         # Create a new supplot
-        _, ax1 = plt.subplots(1, 1)
+        _, ax1 = plt.subplots(1, 1, figsize=self.plotsize)
 
         # Create a colorpalette
         cmap = plt.get_cmap(colormap)
@@ -108,7 +110,7 @@ class PCA:
 
     def plotpcaloadings(self):
         # Create a new subplot
-        _, ax2 = plt.subplots(1, 1)
+        _, ax2 = plt.subplots(1, 1, figsize=self.plotsize)
         ax2.scatter(self.eigenv[0], self.eigenv[1], color="black", s=2)
 
         # Label the eigenvectors (PC's)
