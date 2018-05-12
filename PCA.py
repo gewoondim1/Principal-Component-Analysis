@@ -1,4 +1,71 @@
-def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
+from pandas import read_csv
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+class PCA:
+    def __init__(self, dataframe, columns=None, startvar=0, endvar=0):
+        """
+        If columns is not None it will be used to classify the data, otherwise the startvar will be used
+        dataframe: the data as a pandas dataframe
+        columns: all columns which contain actual data
+        startvar: first column containing actual data
+        endvar: last column containing actual data
+        """
+
+        self.df = dataframe
+
+        if columns is []:
+            raise KeyError("Columns can not be an empty list")
+
+        # Create x matrix
+        try:
+            if columns:
+                self.x = np.array(dataframe)[:, columns].astype(np.float32)
+                self.colnames = [list(dataframe)[i] for i in columns]
+            elif not endvar:
+                self.x = np.array(dataframe)[:, startvar:].astype(np.float32)
+                self.colnames = list(dataframe)[startvar:]
+            else:
+                self.x = np.array(dataframe)[:, startvar:endvar].astype(np.float32)
+                self.colnames = list(dataframe)[startvar:endvar]
+        except ValueError:
+            raise ValueError("All data has to be numerical or strings containing only numbers.")
+
+        self.eigenv = []
+
+    def normalize(self, normalize=True):
+        """
+        normalize: wether or not the data will be normalized
+        """
+
+        self.x -= self.x.mean(axis=0)
+
+        if normalize:
+            self.x /= self.x.std(axis=0)
+
+    def addpca(self, n):
+        """
+        n: the amount of PC's
+        """
+
+        # Calculate a covariance matrix, eigenvalues and eigenvectors
+        covmatrix = np.dot(self.x.transpose(), self.x) / (len(self.x) - 1)
+        lambdacov, pcov = map(list, np.linalg.eig(covmatrix))
+
+        indices = []
+
+        for i in range(n):
+            index = lambdacov.index(max(lambdacov))
+            indices.append(index)
+            lambdacov.pop(index)
+
+        # Put the PC's in the dataframe
+        for i, eig in enumerate(indices, 1):
+            self.df["PC" + str(i)] = np.dot(self.x, pcov[eig])
+            self.eigenv.append(pcov[eig])
+
+    def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
                      lcolor="black", lwidth=1, lalpha=0.50, palpha=0.50):
         """
         groupcol: the columns containing the group for each datapoint
@@ -14,7 +81,7 @@ def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
         groups = self.df[groupcol].unique()
 
         # Create a new supplot
-        _, ax1 = plt.subplots(1, 1, figsize=self.plotsize)
+        _, ax1 = plt.subplots(1, 1)
 
         # Create a colorpalette
         cmap = plt.get_cmap(colormap)
@@ -45,7 +112,7 @@ def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
 
     def plotpcaloadings(self):
         # Create a new subplot
-        _, ax2 = plt.subplots(1, 1, figsize=self.plotsize)
+        _, ax2 = plt.subplots(1, 1)
         ax2.scatter(self.eigenv[0], self.eigenv[1], color="black", s=2)
 
         # Label the eigenvectors (PC's)
@@ -77,3 +144,14 @@ def plotpcascore(self, groupcol, colormap="gnuplot", bgcolor="lightgrey",
         ax2.axhline(0, linewidth=1, color="black", alpha=0.50)
 
         plt.show()
+
+
+filelocation = "https://www.dropbox.com/s/9q8nuyhpyes1f4z/Spiraal.csv?raw=1"
+
+df = read_csv(filelocation, delimiter=";")
+
+pca = PCA(df, startvar=2)
+pca.normalize(normalize=False)
+pca.addpca(2)
+pca.plotpcascore("Spiraal")
+pca.plotpcaloadings()
