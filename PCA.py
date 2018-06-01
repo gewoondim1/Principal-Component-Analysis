@@ -15,7 +15,7 @@ class PCA:
 
         self.df = dataframe
 
-        if columns == []:
+        if columns is []:
             raise KeyError("Columns can not be an empty list")
 
         # Create x matrix
@@ -146,12 +146,13 @@ class PCA:
         plt.show()
 
 
-filelocation = "https://www.dropbox.com/s/9q8nuyhpyes1f4z/Spiraal.csv?raw=1"
-
-df = read_csv(filelocation, delimiter=";")
-
-pca = PCA(df, startvar=2)
-pca.normalize(normalize=False)
-pca.addpca(2)
-pca.plotpcascore("Spiraal")
-pca.plotpcaloadings()
+if __name__ == "__main__":
+    filelocation = "https://www.dropbox.com/s/9q8nuyhpyes1f4z/Spiraal.csv?raw=1"
+    
+    df = read_csv(filelocation, delimiter=";")
+    
+    pca = PCA(df, startvar=2)
+    pca.normalize(normalize=False)
+    pca.addpca(2)
+    pca.plotpcascore("Spiraal")
+    pca.plotpcaloadings()
