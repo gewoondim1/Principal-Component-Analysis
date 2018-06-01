@@ -15,7 +15,7 @@ class PCA:
 
         self.df = dataframe
 
-        if columns is []:
+        if columns == []:
             raise KeyError("Columns can not be an empty list")
 
         # Create x matrix
